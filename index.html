@@ -626,6 +626,20 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
   function getActiveList(){ return getList(activeListId); }
   function nameField(list){ return list.type === 'grouped' ? 'item' : 'produto'; }
   function flattenItems(list){ return list.type === 'grouped' ? list.categories.flatMap(c => c.items) : list.items; }
+  function hasRealValue(v){ return !NOT_ORDERED.has((v||'').trim()); }
+  // An item counts as "ordered" if EITHER day has a real value — checking only
+  // `it.d1 || it.d0` breaks whenever d1 is an explicit placeholder like "-",
+  // since that's truthy and short-circuits before d0 is ever looked at.
+  function wasOrdered(it, list){
+    return list.type === 'grouped'
+      ? (hasRealValue(it.d0) || hasRealValue(it.d1))
+      : hasRealValue(it.qtd);
+  }
+  function previewQty(it){
+    if (hasRealValue(it.d1)) return it.d1;
+    if (hasRealValue(it.d0)) return it.d0;
+    return it.d1 || it.d0 || '-';
+  }
   function slugify(s){
     const stripped = String(s).normalize('NFD').replace(new RegExp('[̀-ͯ]', 'g'), '');
     return stripped.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'lista';
@@ -714,7 +728,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
         if (!cat.items.length) return;
         body += `<div class="theme-cat">${esc(cat.name)}</div>`;
         cat.items.forEach(it => {
-          const qty = it.d1 || it.d0 || '-';
+          const qty = previewQty(it);
           body += `<label class="export-row"><input type="checkbox" data-action="toggle-export-item" data-uid="${it._uid}" ${modalState.selected.has(it._uid)?'checked':''}><span class="export-name">${esc(it.item)}</span><span class="export-qty">${esc(qty)}</span></label>`;
         });
       });
@@ -770,11 +784,9 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
 
   function openExportModal(kind){
     const list = getActiveList();
-    const field = nameField(list);
     const selected = new Set();
     flattenItems(list).forEach(it => {
-      const q = list.type === 'grouped' ? (it.d1 || it.d0 || '') : (it.qtd || '');
-      if (!NOT_ORDERED.has(q.trim())) selected.add(it._uid);
+      if (wasOrdered(it, list)) selected.add(it._uid);
     });
     modalState = { kind:'export', exportKind: kind, selected };
     render();
@@ -809,8 +821,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     (list.history || []).forEach(h => {
       const arr = list.type === 'grouped' ? h.data.flatMap(c => c.items) : h.data;
       arr.forEach(it => {
-        const q = list.type === 'grouped' ? (it.d1 || it.d0 || '') : (it.qtd || '');
-        if (NOT_ORDERED.has(q.trim())) return;
+        if (!wasOrdered(it, list)) return;
         const key = (it[field] || '').trim().toLowerCase();
         if (!key) return;
         map.set(key, (map.get(key) || 0) + 1);
@@ -883,8 +894,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
       const match = arr.find(x => (x[field]||'').trim().toLowerCase() === (name||'').trim().toLowerCase());
       if (!match) continue;
       seen++;
-      const q = list.type === 'grouped' ? (match.d1 || match.d0 || '') : (match.qtd || '');
-      if (!NOT_ORDERED.has(q.trim())) return false;
+      if (wasOrdered(match, list)) return false;
     }
     return seen >= 2;
   }
