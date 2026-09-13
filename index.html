@@ -166,7 +166,10 @@ input.cell:focus, textarea.cell:focus{ background:var(--surface); box-shadow:0 0
 tr.struck .prod-input{ text-decoration:line-through; color:var(--text-muted); }
 .del-cell{ width:26px; text-align:center; }
 .handle-cell{ width:22px; text-align:center; color:var(--text-muted); }
-.recv-cell{ width:24px; text-align:center; }
+.recv-cell{ width:26px; text-align:center; }
+.recv-cell input{ display:block; margin:0 auto 4px; }
+.strike-toggle{ display:block; width:18px; height:14px; font-size:10px; line-height:1; padding:0; margin:0 auto; border:1px solid var(--border); background:var(--surface-alt); color:var(--text-muted); border-radius:3px; }
+.strike-toggle.active{ background:var(--bad); color:#fff; border-color:var(--bad); }
 .recv-cell input{ width:15px; height:15px; }
 tr.received td{ opacity:0.5; }
 tr.received .prod-input{ text-decoration:line-through; }
@@ -174,7 +177,7 @@ tr.received .prod-input{ text-decoration:line-through; }
 .qty-wrap input, .qty-wrap textarea{ flex:1; min-width:0; }
 textarea.cell.num{ resize:none; overflow:hidden; height:1.7em; white-space:nowrap; }
 .qty-stepper{ display:flex; flex-direction:column; flex-shrink:0; }
-.qty-stepper button{ width:15px; height:11px; font-size:6px; line-height:1; padding:0; border:none; background:var(--surface-alt); color:var(--text-muted); border-radius:2px; margin-bottom:1px; }
+.qty-stepper button{ width:22px; height:18px; font-size:9px; line-height:1; padding:0; border:1px solid var(--border); background:var(--surface-alt); color:var(--text); border-radius:3px; margin-bottom:2px; }
 .qty-stepper button:last-child{ margin-bottom:0; }
 .delta{ font-size:10px; flex-shrink:0; cursor:help; }
 .delta-up{ color:var(--good); }
@@ -184,6 +187,33 @@ textarea.cell.num{ resize:none; overflow:hidden; height:1.7em; white-space:nowra
 .drag-handle{ cursor:grab; touch-action:none; padding:2px 4px; font-size:14px; user-select:none; }
 tr.dragging td{ opacity:0.45; }
 .add-item-row td{ background:var(--surface); padding:6px 8px; }
+
+/* Mobile card layout: below this width the wide multi-column table becomes
+   one card per item instead of requiring horizontal scroll/zoom. Scoped to
+   .table-scroll so the fixed-width offscreen export table is unaffected. */
+@media (max-width: 620px){
+  .table-scroll{ overflow-x:visible; }
+  .table-scroll table{ display:block; width:100%; }
+  .table-scroll thead{ display:none; }
+  .table-scroll tbody{ display:block; }
+  .table-scroll tr{ display:flex; flex-wrap:wrap; align-items:center; column-gap:8px; row-gap:4px; }
+  .table-scroll tr:not(.cat-row):not(.add-item-row){
+    border:1px solid var(--border); border-radius:10px; padding:8px 10px; margin-bottom:8px; background:var(--surface) !important;
+  }
+  .table-scroll tr td{ border:none; padding:2px 0; }
+  .table-scroll tr .handle-cell{ order:1; width:auto; }
+  .table-scroll tr .recv-cell{ order:2; width:auto; display:flex; gap:4px; }
+  .table-scroll tr .recv-cell input{ margin:0; }
+  .table-scroll tr .strike-toggle{ margin:0; }
+  .table-scroll tr .prod-cell{ order:3; flex:1 1 100%; }
+  .table-scroll tr td[data-label]{ order:4; flex:1 1 44%; display:flex; align-items:center; gap:4px; }
+  .table-scroll tr td[data-label]::before{ content:attr(data-label); font-size:10px; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-muted); flex-shrink:0; }
+  .table-scroll tr .del-cell{ order:9; width:auto; margin-left:auto; }
+  .table-scroll tr.cat-row{ display:block; padding:8px 12px; margin-bottom:6px; border-radius:8px; }
+  .table-scroll tr.cat-row td{ display:block; }
+  .table-scroll tr.cat-row .del-cell{ display:inline-block; float:right; }
+  .table-scroll tr.add-item-row{ display:block; margin-bottom:8px; }
+}
 
 .history-panel{ background:var(--surface-alt); border:1px solid var(--border); border-radius:10px; padding:9px 11px; margin:0 14px 12px; display:flex; flex-direction:column; gap:6px; }
 .hist-row{ display:flex; align-items:center; gap:8px; font-size:12px; }
@@ -198,20 +228,26 @@ tr.dragging td{ opacity:0.45; }
 .primary-share{ background:var(--good); color:#fff; border-color:transparent; font-weight:700; }
 footer.note{ text-align:center; font-size:11px; color:var(--text-muted); padding:6px 0 0; }
 
-.clean-export{ background:#ffffff; color:#221f1a; font-family:'Work Sans', system-ui, sans-serif; width:100%; }
+.clean-export{ background:var(--surface); color:var(--text); font-family:'Work Sans', system-ui, sans-serif; width:100%; }
 .clean-head{ padding:18px 22px; border-bottom:3px solid var(--accent); }
 .clean-title{ font-family:'Fraunces', Georgia, serif; font-weight:700; font-size:23px; color:var(--accent); }
-.clean-date{ font-size:12px; color:#8a8374; margin-top:2px; }
+.clean-date{ font-size:12px; color:var(--text-muted); margin-top:2px; }
 table.clean-table{ width:100%; border-collapse:collapse; font-size:16px; }
-table.clean-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#8a8374; padding:12px 22px 6px; font-weight:600; }
+table.clean-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); padding:12px 22px 6px; font-weight:600; }
 table.clean-table th:not(:first-child){ text-align:center; }
-table.clean-table td{ padding:10px 22px; border-bottom:1px solid #eee6d8; }
+table.clean-table td{ padding:10px 22px; border-bottom:1px solid var(--border); }
 td.clean-qty{ text-align:center; font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:17px; }
-.clean-unit{ text-align:center; font-size:12px; color:#8a8374; }
-tr.clean-even td{ background:#ffffff; }
-tr.clean-odd td{ background:#f6f2e9; }
+.clean-unit{ text-align:center; font-size:12px; color:var(--text-muted); }
+tr.clean-even td{ background:var(--surface); }
+tr.clean-odd td{ background:var(--surface-alt); }
 tr.clean-cat td{ background:var(--accent); color:#fff; font-weight:700; padding:9px 22px; font-size:13px; border-bottom:none; }
-tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
+tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-muted); }
+.clean-export.force-light{ background:#ffffff; color:#221f1a; }
+.clean-export.force-light .clean-date, .clean-export.force-light table.clean-table th, .clean-export.force-light .clean-unit{ color:#8a8374; }
+.clean-export.force-light table.clean-table td{ border-bottom-color:#eee6d8; }
+.clean-export.force-light tr.clean-even td{ background:#ffffff; }
+.clean-export.force-light tr.clean-odd td{ background:#f6f2e9; }
+.clean-export.force-light tr.clean-struck .clean-name{ color:#aaa; }
 
 .modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
 .modal-box{ background:var(--surface); width:100%; max-width:640px; max-height:82vh; border-radius:16px 16px 0 0; display:flex; flex-direction:column; box-shadow:0 -4px 24px rgba(0,0,0,0.3); }
@@ -388,7 +424,10 @@ input.cell:focus, textarea.cell:focus{ background:var(--surface); box-shadow:0 0
 tr.struck .prod-input{ text-decoration:line-through; color:var(--text-muted); }
 .del-cell{ width:26px; text-align:center; }
 .handle-cell{ width:22px; text-align:center; color:var(--text-muted); }
-.recv-cell{ width:24px; text-align:center; }
+.recv-cell{ width:26px; text-align:center; }
+.recv-cell input{ display:block; margin:0 auto 4px; }
+.strike-toggle{ display:block; width:18px; height:14px; font-size:10px; line-height:1; padding:0; margin:0 auto; border:1px solid var(--border); background:var(--surface-alt); color:var(--text-muted); border-radius:3px; }
+.strike-toggle.active{ background:var(--bad); color:#fff; border-color:var(--bad); }
 .recv-cell input{ width:15px; height:15px; }
 tr.received td{ opacity:0.5; }
 tr.received .prod-input{ text-decoration:line-through; }
@@ -396,7 +435,7 @@ tr.received .prod-input{ text-decoration:line-through; }
 .qty-wrap input, .qty-wrap textarea{ flex:1; min-width:0; }
 textarea.cell.num{ resize:none; overflow:hidden; height:1.7em; white-space:nowrap; }
 .qty-stepper{ display:flex; flex-direction:column; flex-shrink:0; }
-.qty-stepper button{ width:15px; height:11px; font-size:6px; line-height:1; padding:0; border:none; background:var(--surface-alt); color:var(--text-muted); border-radius:2px; margin-bottom:1px; }
+.qty-stepper button{ width:22px; height:18px; font-size:9px; line-height:1; padding:0; border:1px solid var(--border); background:var(--surface-alt); color:var(--text); border-radius:3px; margin-bottom:2px; }
 .qty-stepper button:last-child{ margin-bottom:0; }
 .delta{ font-size:10px; flex-shrink:0; cursor:help; }
 .delta-up{ color:var(--good); }
@@ -406,6 +445,33 @@ textarea.cell.num{ resize:none; overflow:hidden; height:1.7em; white-space:nowra
 .drag-handle{ cursor:grab; touch-action:none; padding:2px 4px; font-size:14px; user-select:none; }
 tr.dragging td{ opacity:0.45; }
 .add-item-row td{ background:var(--surface); padding:6px 8px; }
+
+/* Mobile card layout: below this width the wide multi-column table becomes
+   one card per item instead of requiring horizontal scroll/zoom. Scoped to
+   .table-scroll so the fixed-width offscreen export table is unaffected. */
+@media (max-width: 620px){
+  .table-scroll{ overflow-x:visible; }
+  .table-scroll table{ display:block; width:100%; }
+  .table-scroll thead{ display:none; }
+  .table-scroll tbody{ display:block; }
+  .table-scroll tr{ display:flex; flex-wrap:wrap; align-items:center; column-gap:8px; row-gap:4px; }
+  .table-scroll tr:not(.cat-row):not(.add-item-row){
+    border:1px solid var(--border); border-radius:10px; padding:8px 10px; margin-bottom:8px; background:var(--surface) !important;
+  }
+  .table-scroll tr td{ border:none; padding:2px 0; }
+  .table-scroll tr .handle-cell{ order:1; width:auto; }
+  .table-scroll tr .recv-cell{ order:2; width:auto; display:flex; gap:4px; }
+  .table-scroll tr .recv-cell input{ margin:0; }
+  .table-scroll tr .strike-toggle{ margin:0; }
+  .table-scroll tr .prod-cell{ order:3; flex:1 1 100%; }
+  .table-scroll tr td[data-label]{ order:4; flex:1 1 44%; display:flex; align-items:center; gap:4px; }
+  .table-scroll tr td[data-label]::before{ content:attr(data-label); font-size:10px; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-muted); flex-shrink:0; }
+  .table-scroll tr .del-cell{ order:9; width:auto; margin-left:auto; }
+  .table-scroll tr.cat-row{ display:block; padding:8px 12px; margin-bottom:6px; border-radius:8px; }
+  .table-scroll tr.cat-row td{ display:block; }
+  .table-scroll tr.cat-row .del-cell{ display:inline-block; float:right; }
+  .table-scroll tr.add-item-row{ display:block; margin-bottom:8px; }
+}
 
 .history-panel{ background:var(--surface-alt); border:1px solid var(--border); border-radius:10px; padding:9px 11px; margin:0 14px 12px; display:flex; flex-direction:column; gap:6px; }
 .hist-row{ display:flex; align-items:center; gap:8px; font-size:12px; }
@@ -420,20 +486,26 @@ tr.dragging td{ opacity:0.45; }
 .primary-share{ background:var(--good); color:#fff; border-color:transparent; font-weight:700; }
 footer.note{ text-align:center; font-size:11px; color:var(--text-muted); padding:6px 0 0; }
 
-.clean-export{ background:#ffffff; color:#221f1a; font-family:'Work Sans', system-ui, sans-serif; width:100%; }
+.clean-export{ background:var(--surface); color:var(--text); font-family:'Work Sans', system-ui, sans-serif; width:100%; }
 .clean-head{ padding:18px 22px; border-bottom:3px solid var(--accent); }
 .clean-title{ font-family:'Fraunces', Georgia, serif; font-weight:700; font-size:23px; color:var(--accent); }
-.clean-date{ font-size:12px; color:#8a8374; margin-top:2px; }
+.clean-date{ font-size:12px; color:var(--text-muted); margin-top:2px; }
 table.clean-table{ width:100%; border-collapse:collapse; font-size:16px; }
-table.clean-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#8a8374; padding:12px 22px 6px; font-weight:600; }
+table.clean-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); padding:12px 22px 6px; font-weight:600; }
 table.clean-table th:not(:first-child){ text-align:center; }
-table.clean-table td{ padding:10px 22px; border-bottom:1px solid #eee6d8; }
+table.clean-table td{ padding:10px 22px; border-bottom:1px solid var(--border); }
 td.clean-qty{ text-align:center; font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:17px; }
-.clean-unit{ text-align:center; font-size:12px; color:#8a8374; }
-tr.clean-even td{ background:#ffffff; }
-tr.clean-odd td{ background:#f6f2e9; }
+.clean-unit{ text-align:center; font-size:12px; color:var(--text-muted); }
+tr.clean-even td{ background:var(--surface); }
+tr.clean-odd td{ background:var(--surface-alt); }
 tr.clean-cat td{ background:var(--accent); color:#fff; font-weight:700; padding:9px 22px; font-size:13px; border-bottom:none; }
-tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
+tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-muted); }
+.clean-export.force-light{ background:#ffffff; color:#221f1a; }
+.clean-export.force-light .clean-date, .clean-export.force-light table.clean-table th, .clean-export.force-light .clean-unit{ color:#8a8374; }
+.clean-export.force-light table.clean-table td{ border-bottom-color:#eee6d8; }
+.clean-export.force-light tr.clean-even td{ background:#ffffff; }
+.clean-export.force-light tr.clean-odd td{ background:#f6f2e9; }
+.clean-export.force-light tr.clean-struck .clean-name{ color:#aaa; }
 
 .modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
 .modal-box{ background:var(--surface); width:100%; max-width:640px; max-height:82vh; border-radius:16px 16px 0 0; display:flex; flex-direction:column; box-shadow:0 -4px 24px rgba(0,0,0,0.3); }
@@ -473,6 +545,10 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
   try { showFornecedor = localStorage.getItem('pedidos_show_fornecedor') !== 'false'; } catch(e){}
   let staleAlertsEnabled = true;
   try { staleAlertsEnabled = localStorage.getItem('pedidos_stale_alerts') !== 'false'; } catch(e){}
+  let exportMatchTheme = true;
+  try { exportMatchTheme = localStorage.getItem('pedidos_export_match_theme') !== 'false'; } catch(e){}
+  let exportShowFornecedor = false;
+  try { exportShowFornecedor = localStorage.getItem('pedidos_export_show_fornecedor') === 'true'; } catch(e){}
   let capArtifact = null, capDownloads = null;
   let dirty = false, saveTimer = null, saveState = 'idle';
   let undoStack = [], redoStack = [];
@@ -539,6 +615,9 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
     const activeId = currentThemeId();
     let body = `<div class="theme-cat">Preferências</div>
       <label class="export-row"><input type="checkbox" data-action="toggle-stale-alerts" ${staleAlertsEnabled?'checked':''}><span class="export-name">Avisar itens não pedidos há muito tempo</span></label>
+      <div class="theme-cat">Envio / exportação</div>
+      <label class="export-row"><input type="checkbox" data-action="toggle-export-theme" ${exportMatchTheme?'checked':''}><span class="export-name">Fundo da imagem/PDF segue o tema atual</span></label>
+      <label class="export-row"><input type="checkbox" data-action="toggle-export-fornecedor" ${exportShowFornecedor?'checked':''}><span class="export-name">Mostrar fornecedor no envio (Peixe)</span></label>
       <div class="theme-cat">Dados</div>
       <div class="modal-quick" style="padding:0 16px 8px;">
         <button type="button" class="ghost" data-action="export-backup">Exportar backup</button>
@@ -752,8 +831,8 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
     return isStale(list, name) ? `<span class="stale-badge" title="Não pedido nas últimas encomendas">⏰</span>` : '';
   }
 
-  function qtyCellHtml(field, idx, cat, value, badge){
-    return `<td class="num"><span class="qty-wrap">
+  function qtyCellHtml(field, idx, cat, value, badge, label){
+    return `<td class="num" data-label="${esc(label||'Qtd')}"><span class="qty-wrap">
       <textarea class="cell num" rows="1" data-field="${field}" data-idx="${idx}"${cat}>${esc(value)}</textarea>
       <span class="qty-stepper">
         <button type="button" data-action="qty-step" data-dir="1" data-field="${field}" data-idx="${idx}"${cat} tabindex="-1">▲</button>
@@ -766,14 +845,17 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
   function rowInputsHtml(it, list, idx, catIdx, draggable){
     const cat = catIdx != null ? ` data-cat="${catIdx}"` : '';
     const handle = draggable ? `<span class="drag-handle" data-uid="${it._uid}">⠿</span>` : '';
-    const recv = `<td class="recv-cell"><input type="checkbox" data-action="toggle-received" data-idx="${idx}"${cat} ${it.received?'checked':''} title="Recebido"></td>`;
-    const fornCell = showFornecedor ? `<td><input class="cell" data-field="fornecedor" data-idx="${idx}"${cat} value="${esc(it.fornecedor)}"></td>` : '';
+    const recv = `<td class="recv-cell">
+      <input type="checkbox" data-action="toggle-received" data-idx="${idx}"${cat} ${it.received?'checked':''} title="Recebido">
+      <button type="button" class="strike-toggle${it.struck?' active':''}" data-action="toggle-struck" data-idx="${idx}"${cat} title="Marcar como não necessário">—</button>
+    </td>`;
+    const fornCell = showFornecedor ? `<td data-label="Fornecedor"><input class="cell" data-field="fornecedor" data-idx="${idx}"${cat} value="${esc(it.fornecedor)}"></td>` : '';
     if (list.type === 'grouped'){
       return `${recv}<td class="handle-cell">${handle}</td>
         <td class="prod-cell"><textarea class="cell prod-input" rows="1" data-field="item" data-idx="${idx}"${cat}>${esc(it.item)}</textarea>${staleBadge(list, it.item)}</td>
         ${fornCell}
-        ${qtyCellHtml('d0', idx, cat, it.d0, deltaBadge(list, it.item, 'd0', it.d0))}
-        ${qtyCellHtml('d1', idx, cat, it.d1, deltaBadge(list, it.item, 'd1', it.d1))}
+        ${qtyCellHtml('d0', idx, cat, it.d0, deltaBadge(list, it.item, 'd0', it.d0), list.dayLabels[0])}
+        ${qtyCellHtml('d1', idx, cat, it.d1, deltaBadge(list, it.item, 'd1', it.d1), list.dayLabels[1])}
         <td class="del-cell"><button type="button" class="danger" data-action="del-item" data-idx="${idx}"${cat}>✕</button></td>`;
     }
     return `${recv}<td class="handle-cell">${handle}</td>
@@ -781,8 +863,8 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
         <textarea class="cell prod-input" rows="1" data-field="produto" data-idx="${idx}">${esc(it.produto)}</textarea>${staleBadge(list, it.produto)}
         <input class="cell cell-sub" data-field="tipo" data-idx="${idx}" value="${esc(it.tipo)}" placeholder="tipo">
       </td>
-      ${qtyCellHtml('qtd', idx, cat, it.qtd, deltaBadge(list, it.produto, 'qtd', it.qtd))}
-      <td><input class="cell" data-field="un" data-idx="${idx}" value="${esc(it.un)}"></td>
+      ${qtyCellHtml('qtd', idx, cat, it.qtd, deltaBadge(list, it.produto, 'qtd', it.qtd), 'Qtd')}
+      <td data-label="Un"><input class="cell" data-field="un" data-idx="${idx}" value="${esc(it.un)}"></td>
       <td class="del-cell"><button type="button" class="danger" data-action="del-item" data-idx="${idx}">✕</button></td>`;
   }
 
@@ -824,7 +906,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
         rows += `<tr class="cat-row"><td colspan="6">${esc(key)}</td></tr>`;
         groups[key].forEach(r => {
           const parity = (pos++ % 2 === 0) ? 'row-even' : 'row-odd';
-          const cls = [parity, r.it.received?'received':''].join(' ');
+          const cls = [parity, r.it.received?'received':'', r.it.struck?'struck':''].join(' ');
           rows += `<tr class="${cls}" data-uid="${r.it._uid}">${rowInputsHtml(r.it, list, r.idx, null, false)}</tr>`;
         });
       });
@@ -838,7 +920,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
     const displayRows = computeRows(list.items, list, { query: searchQuery, sortMode, freqMap });
     let rows = displayRows.map((r, pos) => {
       const parity = (pos % 2 === 0) ? 'row-even' : 'row-odd';
-      const cls = [parity, r.it.received?'received':''].join(' ');
+      const cls = [parity, r.it.received?'received':'', r.it.struck?'struck':''].join(' ');
       return `<tr class="${cls}" data-uid="${r.it._uid}">${rowInputsHtml(r.it, list, r.idx, null, draggable)}</tr>`;
     }).join('');
     return `<table>
@@ -1100,6 +1182,16 @@ ${appScript}
       try { localStorage.setItem('pedidos_stale_alerts', String(staleAlertsEnabled)); } catch(e){}
       return;
     }
+    if (action === 'toggle-export-theme'){
+      exportMatchTheme = btn.checked;
+      try { localStorage.setItem('pedidos_export_match_theme', String(exportMatchTheme)); } catch(e){}
+      return;
+    }
+    if (action === 'toggle-export-fornecedor'){
+      exportShowFornecedor = btn.checked;
+      try { localStorage.setItem('pedidos_export_show_fornecedor', String(exportShowFornecedor)); } catch(e){}
+      return;
+    }
     if (action === 'export-backup'){ exportBackup(); return; }
     if (action === 'import-backup'){
       const input = document.getElementById('import-backup-input');
@@ -1199,6 +1291,21 @@ ${appScript}
       const next = (isNaN(num) ? 0 : num) + dir;
       if (!dirty) pushUndo();
       ref[idx][field] = String(Math.max(0, next));
+      scheduleSave();
+      renderTableOnly();
+      return;
+    }
+    if (action === 'toggle-struck'){
+      const cat = btn.dataset.cat !== undefined ? Number(btn.dataset.cat) : null;
+      const idx = Number(btn.dataset.idx);
+      const ref = cat != null ? list.categories[cat].items : list.items;
+      const item = ref[idx];
+      if (!dirty) pushUndo();
+      item.struck = !item.struck;
+      if (item.struck){
+        if (list.type === 'grouped'){ item.d0 = '-'; item.d1 = '-'; }
+        else { item.qtd = '-'; }
+      }
       scheduleSave();
       renderTableOnly();
       return;
@@ -1563,41 +1670,45 @@ ${appScript}
   function buildCleanExportHtml(list, selectedUids){
     const dateStr = new Date().toLocaleDateString('pt-PT');
     const keep = it => !selectedUids || selectedUids.has(it._uid);
+    const lightCls = exportMatchTheme ? '' : ' force-light';
     let rows = '';
     if (list.type === 'grouped'){
+      const showForn = exportShowFornecedor;
+      const cols = showForn ? 4 : 3;
       list.categories.forEach(cat => {
         const items = cat.items.filter(keep);
         if (!items.length) return;
-        rows += `<tr class="clean-cat"><td colspan="3">${esc(cat.name)}</td></tr>`;
+        rows += `<tr class="clean-cat"><td colspan="${cols}">${esc(cat.name)}</td></tr>`;
         items.forEach((it, ii) => {
           const parity = ii % 2 === 0 ? 'clean-even' : 'clean-odd';
           rows += `<tr class="${parity}${it.struck?' clean-struck':''}">
             <td class="clean-name">${esc(it.item)}</td>
+            ${showForn ? `<td class="clean-unit">${esc(it.fornecedor) || ''}</td>` : ''}
             <td class="clean-qty">${esc(it.d0) || '-'}</td>
             <td class="clean-qty">${esc(it.d1) || '-'}</td>
           </tr>`;
         });
       });
-      return `<div class="clean-export" style="--accent:var(--acc-${list.accent})">
+      return `<div class="clean-export${lightCls}" style="--accent:var(--acc-${list.accent})">
         <div class="clean-head">
           <div class="clean-title">${esc(list.label)}</div>
           <div class="clean-date">${dateStr}</div>
         </div>
         <table class="clean-table">
-          <thead><tr><th>Item</th><th>${esc(list.dayLabels[0])}</th><th>${esc(list.dayLabels[1])}</th></tr></thead>
+          <thead><tr><th>Item</th>${showForn ? '<th>Fornecedor</th>' : ''}<th>${esc(list.dayLabels[0])}</th><th>${esc(list.dayLabels[1])}</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>`;
     }
     list.items.filter(keep).forEach((it, ii) => {
       const parity = ii % 2 === 0 ? 'clean-even' : 'clean-odd';
-      rows += `<tr class="${parity}">
+      rows += `<tr class="${parity}${it.struck?' clean-struck':''}">
         <td class="clean-name">${esc(it.produto)}</td>
         <td class="clean-qty">${esc(it.qtd) || '-'}</td>
         <td class="clean-unit">${esc(it.un) || ''}</td>
       </tr>`;
     });
-    return `<div class="clean-export" style="--accent:var(--acc-${list.accent})">
+    return `<div class="clean-export${lightCls}" style="--accent:var(--acc-${list.accent})">
       <div class="clean-head">
         <div class="clean-title">${esc(list.label)}</div>
         <div class="clean-date">${dateStr}</div>
@@ -1614,7 +1725,10 @@ ${appScript}
     holder.style.cssText = 'position:fixed; left:-10000px; top:0; width:560px;';
     holder.innerHTML = buildCleanExportHtml(list, selectedUids);
     document.body.appendChild(holder);
-    const canvas = await html2canvas(holder.firstElementChild, { backgroundColor: '#ffffff', scale: 2 });
+    const bg = exportMatchTheme
+      ? (getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff')
+      : '#ffffff';
+    const canvas = await html2canvas(holder.firstElementChild, { backgroundColor: bg, scale: 2 });
     document.body.removeChild(holder);
     return canvas;
   }
