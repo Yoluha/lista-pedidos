@@ -322,8 +322,8 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
 "recheio":{"items":[{"produto":"Pimento vermelho","qtd":"4","un":"500g","tipo":"Legumes"},{"produto":"rabanetes","qtd":".","un":"250g","tipo":"Legumes"},{"produto":"alho francês","qtd":"-","un":"2kg","tipo":"Legumes"},{"produto":"Batata doce branca","qtd":".","un":"6kg","tipo":"Legumes"},{"produto":"Batata doce roxa","qtd":"-","un":"6kg","tipo":"Legumes"},{"produto":"beterraba","qtd":".","un":"kg","tipo":"Legumes"},{"produto":"cebola roxa","qtd":".","un":"5kg","tipo":"Legumes"},{"produto":"misto de alface","qtd":"6","un":"350g","tipo":"Legumes"},{"produto":"cenouras","qtd":"-","un":"5kg","tipo":"Legumes"},{"produto":"courgetes","qtd":".","un":"5kg","tipo":"Legumes"},{"produto":"couve","qtd":"-","un":"un","tipo":"Legumes"},{"produto":"Couve Roxa","qtd":"-","un":"Un","tipo":"Legumes"},{"produto":"gengibre","qtd":"-","un":"375g","tipo":"Legumes"},{"produto":"limas","qtd":"-","un":"500g","tipo":"Legumes"},{"produto":"Nabos(daikon)","qtd":"-","un":"4kg","tipo":"Legumes"},{"produto":"Malagueta verde","qtd":"-","un":"un","tipo":"Legumes"},{"produto":"manga","qtd":"2","un":"caixa ~4kg","tipo":"Frutas"},{"produto":"abacate HASS","qtd":"2","un":"caixa ~4kg","tipo":"Frutas"},{"produto":"laranjas","qtd":"-","un":"caixa ~2kg","tipo":"Frutas"},{"produto":"morangos","qtd":"1","un":"2kg","tipo":"Frutas"},{"produto":"Abacaxi","qtd":"4","un":"Un","tipo":"Frutas"},{"produto":"Ceboleto","qtd":"-","un":"200g","tipo":"Frutas"},{"produto":"tomate cherry","qtd":"6","un":"500g","tipo":"Frutas"},{"produto":"melancia","qtd":"-","un":"Un","tipo":"Frutas"},{"produto":"açúcar","qtd":".","un":"kg","tipo":"Mercearia"},{"produto":"açúcar amarelo","qtd":"-","un":"kg","tipo":"Mercearia"},{"produto":"farinha","qtd":".","un":"Saco grande","tipo":"Mercearia"},{"produto":"sal fino","qtd":".","un":"10kg","tipo":"Mercearia"},{"produto":"amêndoa picada","qtd":".","un":"kg","tipo":"Mercearia"},{"produto":"azeite","qtd":"-","un":"un","tipo":"Mercearia"},{"produto":"Aroma de baunilha","qtd":"-","un":"un","tipo":"Mercearia"},{"produto":"chocolate branco","qtd":".","un":"Un","tipo":"Mercearia"},{"produto":"Manteiga Amendoim","qtd":".","un":"Caixa grande","tipo":"Mercearia"},{"produto":"Amendoim","qtd":".","un":"kg","tipo":"Mercearia"},{"produto":"leite condensado","qtd":"-","un":"Un","tipo":"Mercearia"},{"produto":"manteiga","qtd":"-","un":"Un","tipo":"Mercearia"},{"produto":"Nutella","qtd":".","un":"Un","tipo":"Mercearia"},{"produto":"ovos codorniz","qtd":"10","un":"Dúzia","tipo":"Mercearia"},{"produto":"amêndoa laminada","qtd":"10","un":"Un","tipo":"Mercearia"},{"produto":"Bolacha aveia Triunfo 190g","qtd":".","un":"caixa de 24un","tipo":"Mercearia"},{"produto":"bolachas recheadas cacau","qtd":"-","un":"caixa de 20un","tipo":"Mercearia"},{"produto":"salmão (6/7kg)","qtd":"-","un":"un","tipo":"Peixe"},{"produto":"Toalhitas WC \"marca Recheio\"","qtd":".","un":"Un","tipo":"limpeza e diversos"},{"produto":"Bag in Box Rosé (5L)","qtd":"-","un":"Un","tipo":"Bebidas"},{"produto":"Espumante Corte Real Branco","qtd":".","un":"Caixa 6un","tipo":"Bebidas"},{"produto":"Espumante Corte Real Rosé","qtd":"-","un":"Caixa 6un","tipo":"Bebidas"},{"produto":"Seven Up 1,5X6 PACK","qtd":"2","un":"Pack de 6","tipo":"Bebidas"},{"produto":"Vieiras","qtd":"-","un":"kg","tipo":"Bebidas"}],"history":[]}}
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="html2canvas.min.js"></script>
+<script src="jspdf.umd.min.js"></script>
 <script id="app-script">
 (function(){
   const PALETTE = ['teal','green','terracotta','indigo','mustard','plum'];
@@ -545,8 +545,14 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
   try { showFornecedor = localStorage.getItem('pedidos_show_fornecedor') !== 'false'; } catch(e){}
   let staleAlertsEnabled = true;
   try { staleAlertsEnabled = localStorage.getItem('pedidos_stale_alerts') !== 'false'; } catch(e){}
-  let exportMatchTheme = true;
-  try { exportMatchTheme = localStorage.getItem('pedidos_export_match_theme') !== 'false'; } catch(e){}
+  let exportThemeId = 'same';
+  try { exportThemeId = localStorage.getItem('pedidos_export_theme_id') || 'same'; } catch(e){}
+  function exportThemeLabel(){
+    if (!exportThemeId || exportThemeId === 'same') return 'Igual ao pessoal';
+    if (exportThemeId === 'light') return 'Sempre claro';
+    const t = THEME_CATALOG.find(x => x.id === exportThemeId);
+    return t ? t.label : 'Igual ao pessoal';
+  }
   let exportShowFornecedor = false;
   try { exportShowFornecedor = localStorage.getItem('pedidos_export_show_fornecedor') === 'true'; } catch(e){}
   let capArtifact = null, capDownloads = null;
@@ -616,14 +622,17 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     let body = `<div class="theme-cat">Preferências</div>
       <label class="export-row"><input type="checkbox" data-action="toggle-stale-alerts" ${staleAlertsEnabled?'checked':''}><span class="export-name">Avisar itens não pedidos há muito tempo</span></label>
       <div class="theme-cat">Envio / exportação</div>
-      <label class="export-row"><input type="checkbox" data-action="toggle-export-theme" ${exportMatchTheme?'checked':''}><span class="export-name">Fundo da imagem/PDF segue o tema atual</span></label>
+      <button type="button" class="theme-row" data-action="open-export-theme-modal" style="width:100%; border:none; background:none; cursor:pointer;">
+        <span class="theme-swatch" style="background:linear-gradient(135deg,#fff 50%,#222 50%)"></span>
+        <span class="theme-label">Tema de envio: ${esc(exportThemeLabel())} ›</span>
+      </button>
       <label class="export-row"><input type="checkbox" data-action="toggle-export-fornecedor" ${exportShowFornecedor?'checked':''}><span class="export-name">Mostrar fornecedor no envio (Peixe)</span></label>
       <div class="theme-cat">Dados</div>
       <div class="modal-quick" style="padding:0 16px 8px;">
         <button type="button" class="ghost" data-action="export-backup">Exportar backup</button>
         <button type="button" class="ghost" data-action="import-backup">Importar backup</button>
       </div>
-      <div class="theme-cat">Tema</div>
+      <div class="theme-cat">Tema pessoal (o que tu vês a usar a app)</div>
       <label class="theme-row${!activeId?' active':''}" data-action="apply-theme" data-theme-id="auto">
       <span class="theme-swatch" style="background:linear-gradient(135deg,#fff 50%,#222 50%)"></span>
       <span class="theme-label">Automático (sistema)</span>
@@ -641,6 +650,35 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
         <div class="modal-header"><h3>Preferências e tema</h3><button type="button" class="modal-close" data-action="close-modal">✕</button></div>
         <div class="modal-list">${body}</div>
         <input type="file" id="import-backup-input" accept="application/json" hidden>
+      </div>
+    </div>`;
+  }
+
+  function renderExportThemeModal(){
+    let body = `<label class="theme-row${exportThemeId==='same'?' active':''}" data-action="apply-export-theme" data-theme-id="same">
+      <span class="theme-swatch" style="background:linear-gradient(135deg,#fff 50%,#222 50%)"></span>
+      <span class="theme-label">Igual ao tema pessoal</span>
+    </label>
+    <label class="theme-row${exportThemeId==='light'?' active':''}" data-action="apply-export-theme" data-theme-id="light">
+      <span class="theme-swatch" style="background:#ffffff; border-color:#ddd3bd"></span>
+      <span class="theme-label">Sempre claro (impressão)</span>
+    </label>`;
+    let lastCat = null;
+    THEME_CATALOG.forEach(t => {
+      if (t.category !== lastCat){ body += `<div class="theme-cat">${esc(t.category)}</div>`; lastCat = t.category; }
+      body += `<label class="theme-row${exportThemeId===t.id?' active':''}" data-action="apply-export-theme" data-theme-id="${t.id}">
+        <span class="theme-swatch" style="background:${t.bgBody}; border-color:${t.border}"><span class="theme-swatch-dot" style="background:${t.accent}"></span></span>
+        <span class="theme-label">${esc(t.label)}</span>
+      </label>`;
+    });
+    return `<div class="modal-backdrop" data-action="close-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <button type="button" class="modal-close" data-action="open-theme-modal" title="Voltar">‹</button>
+          <h3>Tema de envio</h3>
+          <button type="button" class="modal-close" data-action="close-modal">✕</button>
+        </div>
+        <div class="modal-list">${body}</div>
       </div>
     </div>`;
   }
@@ -701,6 +739,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
   function renderModal(){
     if (!modalState) return '';
     if (modalState.kind === 'theme') return renderThemeModal();
+    if (modalState.kind === 'export-theme') return renderExportThemeModal();
     if (modalState.kind === 'export') return renderExportModal();
     if (modalState.kind === 'fornecedor') return renderFornecedorModal();
     return '';
@@ -1175,16 +1214,19 @@ ${appScript}
       return;
     }
     if (action === 'open-theme-modal'){ modalState = { kind:'theme' }; render(); return; }
+    if (action === 'open-export-theme-modal'){ modalState = { kind:'export-theme' }; render(); return; }
     if (action === 'apply-theme'){ applyThemeById(btn.dataset.themeId); modalState = null; render(); return; }
+    if (action === 'apply-export-theme'){
+      exportThemeId = btn.dataset.themeId;
+      try { localStorage.setItem('pedidos_export_theme_id', exportThemeId); } catch(e){}
+      modalState = { kind:'theme' };
+      render();
+      return;
+    }
     if (action === 'close-modal'){ modalState = null; render(); return; }
     if (action === 'toggle-stale-alerts'){
       staleAlertsEnabled = btn.checked;
       try { localStorage.setItem('pedidos_stale_alerts', String(staleAlertsEnabled)); } catch(e){}
-      return;
-    }
-    if (action === 'toggle-export-theme'){
-      exportMatchTheme = btn.checked;
-      try { localStorage.setItem('pedidos_export_match_theme', String(exportMatchTheme)); } catch(e){}
       return;
     }
     if (action === 'toggle-export-fornecedor'){
@@ -1667,10 +1709,25 @@ ${appScript}
   // chrome (handles, checkboxes, delete buttons, borders that look like a
   // form). Rendered off-screen at a fixed width so it never depends on the
   // phone's current orientation/viewport and never needs to scroll.
+  function resolveExportTheme(list){
+    if (!exportThemeId || exportThemeId === 'same'){
+      return { lightCls: '', styleOverride: `--accent:var(--acc-${list.accent})` };
+    }
+    if (exportThemeId === 'light'){
+      return { lightCls: ' force-light', styleOverride: `--accent:var(--acc-${list.accent})` };
+    }
+    const t = THEME_CATALOG.find(x => x.id === exportThemeId);
+    if (!t) return { lightCls: '', styleOverride: `--accent:var(--acc-${list.accent})` };
+    return {
+      lightCls: '',
+      styleOverride: `--bg:${t.bgBody}; --surface:${t.bgCard}; --surface-alt:${t.bgInput}; --text:${t.textMain}; --text-muted:${t.textSec}; --border:${t.border}; --accent:${t.accent}`
+    };
+  }
+
   function buildCleanExportHtml(list, selectedUids){
     const dateStr = new Date().toLocaleDateString('pt-PT');
     const keep = it => !selectedUids || selectedUids.has(it._uid);
-    const lightCls = exportMatchTheme ? '' : ' force-light';
+    const { lightCls, styleOverride } = resolveExportTheme(list);
     let rows = '';
     if (list.type === 'grouped'){
       const showForn = exportShowFornecedor;
@@ -1689,7 +1746,7 @@ ${appScript}
           </tr>`;
         });
       });
-      return `<div class="clean-export${lightCls}" style="--accent:var(--acc-${list.accent})">
+      return `<div class="clean-export${lightCls}" style="${styleOverride}">
         <div class="clean-head">
           <div class="clean-title">${esc(list.label)}</div>
           <div class="clean-date">${dateStr}</div>
@@ -1708,7 +1765,7 @@ ${appScript}
         <td class="clean-unit">${esc(it.un) || ''}</td>
       </tr>`;
     });
-    return `<div class="clean-export${lightCls}" style="--accent:var(--acc-${list.accent})">
+    return `<div class="clean-export${lightCls}" style="${styleOverride}">
       <div class="clean-head">
         <div class="clean-title">${esc(list.label)}</div>
         <div class="clean-date">${dateStr}</div>
@@ -1725,9 +1782,13 @@ ${appScript}
     holder.style.cssText = 'position:fixed; left:-10000px; top:0; width:560px;';
     holder.innerHTML = buildCleanExportHtml(list, selectedUids);
     document.body.appendChild(holder);
-    const bg = exportMatchTheme
-      ? (getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff')
-      : '#ffffff';
+    let bg = '#ffffff';
+    if (!exportThemeId || exportThemeId === 'same'){
+      bg = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff';
+    } else if (exportThemeId !== 'light'){
+      const t = THEME_CATALOG.find(x => x.id === exportThemeId);
+      if (t) bg = t.bgCard;
+    }
     const canvas = await html2canvas(holder.firstElementChild, { backgroundColor: bg, scale: 2 });
     document.body.removeChild(holder);
     return canvas;
