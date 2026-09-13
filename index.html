@@ -146,6 +146,11 @@ input.search-input{ flex:1; min-width:0; border:1px solid var(--border); border-
 select.sort-select{ border:1px solid var(--border); border-radius:8px; padding:8px 6px; background:var(--surface); color:var(--text); font-family:inherit; font-size:12px; max-width:132px; }
 .col-toggle{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); margin:8px 0 0; cursor:pointer; }
 .col-toggle input{ width:14px; height:14px; }
+.freq-badge{ font-size:11px; margin-left:3px; }
+.simple-mode .stale-badge, .simple-mode .delta{ display:none; }
+.simple-mode .col-toggle{ display:none; }
+.simple-mode .card-head-actions{ display:none; }
+.simple-mode [data-action="add-cat"], .simple-mode [data-action="open-fornecedor-modal"]{ display:none; }
 .hint{ font-size:11px; color:var(--text-muted); padding:6px 14px 0; }
 .table-scroll{ overflow-x:auto; padding-top:8px; }
 table{ border-collapse:collapse; width:100%; font-size:13px; }
@@ -202,6 +207,8 @@ tr.dragging td{ opacity:0.45; }
   }
   .table-scroll tr td{ border:none; padding:2px 0; }
   .table-scroll tr .handle-cell{ order:1; width:auto; }
+  .table-scroll tr:not(.cat-row):not(.add-item-row){ touch-action:pan-y; transition:transform 0.18s ease; will-change:transform; }
+  .table-scroll tr.swiping{ transition:none; }
   .table-scroll tr .recv-cell{ order:2; width:auto; display:flex; gap:4px; }
   .table-scroll tr .recv-cell input{ margin:0; }
   .table-scroll tr .strike-toggle{ margin:0; }
@@ -213,6 +220,9 @@ tr.dragging td{ opacity:0.45; }
   .table-scroll tr.cat-row td{ display:block; }
   .table-scroll tr.cat-row .del-cell{ display:inline-block; float:right; }
   .table-scroll tr.add-item-row{ display:block; margin-bottom:8px; }
+  .simple-mode .table-scroll tr .handle-cell{ display:none; }
+  .simple-mode .table-scroll tr .del-cell{ display:none; }
+  .simple-mode .table-scroll tr.add-item-row{ display:none; }
 }
 
 .history-panel{ background:var(--surface-alt); border:1px solid var(--border); border-radius:10px; padding:9px 11px; margin:0 14px 12px; display:flex; flex-direction:column; gap:6px; }
@@ -404,6 +414,11 @@ input.search-input{ flex:1; min-width:0; border:1px solid var(--border); border-
 select.sort-select{ border:1px solid var(--border); border-radius:8px; padding:8px 6px; background:var(--surface); color:var(--text); font-family:inherit; font-size:12px; max-width:132px; }
 .col-toggle{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); margin:8px 0 0; cursor:pointer; }
 .col-toggle input{ width:14px; height:14px; }
+.freq-badge{ font-size:11px; margin-left:3px; }
+.simple-mode .stale-badge, .simple-mode .delta{ display:none; }
+.simple-mode .col-toggle{ display:none; }
+.simple-mode .card-head-actions{ display:none; }
+.simple-mode [data-action="add-cat"], .simple-mode [data-action="open-fornecedor-modal"]{ display:none; }
 .hint{ font-size:11px; color:var(--text-muted); padding:6px 14px 0; }
 .table-scroll{ overflow-x:auto; padding-top:8px; }
 table{ border-collapse:collapse; width:100%; font-size:13px; }
@@ -460,6 +475,8 @@ tr.dragging td{ opacity:0.45; }
   }
   .table-scroll tr td{ border:none; padding:2px 0; }
   .table-scroll tr .handle-cell{ order:1; width:auto; }
+  .table-scroll tr:not(.cat-row):not(.add-item-row){ touch-action:pan-y; transition:transform 0.18s ease; will-change:transform; }
+  .table-scroll tr.swiping{ transition:none; }
   .table-scroll tr .recv-cell{ order:2; width:auto; display:flex; gap:4px; }
   .table-scroll tr .recv-cell input{ margin:0; }
   .table-scroll tr .strike-toggle{ margin:0; }
@@ -471,6 +488,9 @@ tr.dragging td{ opacity:0.45; }
   .table-scroll tr.cat-row td{ display:block; }
   .table-scroll tr.cat-row .del-cell{ display:inline-block; float:right; }
   .table-scroll tr.add-item-row{ display:block; margin-bottom:8px; }
+  .simple-mode .table-scroll tr .handle-cell{ display:none; }
+  .simple-mode .table-scroll tr .del-cell{ display:none; }
+  .simple-mode .table-scroll tr.add-item-row{ display:none; }
 }
 
 .history-panel{ background:var(--surface-alt); border:1px solid var(--border); border-radius:10px; padding:9px 11px; margin:0 14px 12px; display:flex; flex-direction:column; gap:6px; }
@@ -555,6 +575,8 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
   }
   let exportShowFornecedor = false;
   try { exportShowFornecedor = localStorage.getItem('pedidos_export_show_fornecedor') === 'true'; } catch(e){}
+  let simpleMode = false;
+  try { simpleMode = localStorage.getItem('pedidos_simple_mode') === 'true'; } catch(e){}
   let capArtifact = null, capDownloads = null;
   let dirty = false, saveTimer = null, saveState = 'idle';
   let undoStack = [], redoStack = [];
@@ -621,6 +643,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     const activeId = currentThemeId();
     let body = `<div class="theme-cat">Preferências</div>
       <label class="export-row"><input type="checkbox" data-action="toggle-stale-alerts" ${staleAlertsEnabled?'checked':''}><span class="export-name">Avisar itens não pedidos há muito tempo</span></label>
+      <label class="export-row"><input type="checkbox" data-action="toggle-simple-mode" ${simpleMode?'checked':''}><span class="export-name">Modo simples (esconde botões e badges menos usados)</span></label>
       <div class="theme-cat">Envio / exportação</div>
       <button type="button" class="theme-row" data-action="open-export-theme-modal" style="width:100%; border:none; background:none; cursor:pointer;">
         <span class="theme-swatch" style="background:linear-gradient(135deg,#fff 50%,#222 50%)"></span>
@@ -870,6 +893,18 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     return isStale(list, name) ? `<span class="stale-badge" title="Não pedido nas últimas encomendas">⏰</span>` : '';
   }
 
+  function computeTopFreqSet(list){
+    const freqMap = computeFrequencyMap(list);
+    if (!freqMap.size) return new Set();
+    const sorted = Array.from(freqMap.entries()).sort((a,b) => b[1]-a[1]).filter(([,c]) => c > 0);
+    return new Set(sorted.slice(0, 3).map(([k]) => k));
+  }
+
+  function freqBadge(topSet, name){
+    const key = (name||'').trim().toLowerCase();
+    return topSet && topSet.has(key) ? `<span class="freq-badge" title="Um dos itens mais pedidos">🔥</span>` : '';
+  }
+
   function qtyCellHtml(field, idx, cat, value, badge, label){
     return `<td class="num" data-label="${esc(label||'Qtd')}"><span class="qty-wrap">
       <textarea class="cell num" rows="1" data-field="${field}" data-idx="${idx}"${cat}>${esc(value)}</textarea>
@@ -881,7 +916,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     </span></td>`;
   }
 
-  function rowInputsHtml(it, list, idx, catIdx, draggable){
+  function rowInputsHtml(it, list, idx, catIdx, draggable, topSet){
     const cat = catIdx != null ? ` data-cat="${catIdx}"` : '';
     const handle = draggable ? `<span class="drag-handle" data-uid="${it._uid}">⠿</span>` : '';
     const recv = `<td class="recv-cell">
@@ -891,7 +926,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     const fornCell = showFornecedor ? `<td data-label="Fornecedor"><input class="cell" data-field="fornecedor" data-idx="${idx}"${cat} value="${esc(it.fornecedor)}"></td>` : '';
     if (list.type === 'grouped'){
       return `${recv}<td class="handle-cell">${handle}</td>
-        <td class="prod-cell"><textarea class="cell prod-input" rows="1" data-field="item" data-idx="${idx}"${cat}>${esc(it.item)}</textarea>${staleBadge(list, it.item)}</td>
+        <td class="prod-cell"><textarea class="cell prod-input" rows="1" data-field="item" data-idx="${idx}"${cat}>${esc(it.item)}</textarea>${freqBadge(topSet, it.item)}${staleBadge(list, it.item)}</td>
         ${fornCell}
         ${qtyCellHtml('d0', idx, cat, it.d0, deltaBadge(list, it.item, 'd0', it.d0), list.dayLabels[0])}
         ${qtyCellHtml('d1', idx, cat, it.d1, deltaBadge(list, it.item, 'd1', it.d1), list.dayLabels[1])}
@@ -899,7 +934,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     }
     return `${recv}<td class="handle-cell">${handle}</td>
       <td class="prod-cell">
-        <textarea class="cell prod-input" rows="1" data-field="produto" data-idx="${idx}">${esc(it.produto)}</textarea>${staleBadge(list, it.produto)}
+        <textarea class="cell prod-input" rows="1" data-field="produto" data-idx="${idx}">${esc(it.produto)}</textarea>${freqBadge(topSet, it.produto)}${staleBadge(list, it.produto)}
         <input class="cell cell-sub" data-field="tipo" data-idx="${idx}" value="${esc(it.tipo)}" placeholder="tipo">
       </td>
       ${qtyCellHtml('qtd', idx, cat, it.qtd, deltaBadge(list, it.produto, 'qtd', it.qtd), 'Qtd')}
@@ -910,6 +945,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
   function renderGroupedTable(list){
     const draggable = sortMode === 'manual' && !searchQuery;
     const freqMap = sortMode === 'freq' ? computeFrequencyMap(list) : null;
+    const topSet = computeTopFreqSet(list);
     const bodyColspan = showFornecedor ? 6 : 5;
     let rows = '', pos = 0;
     list.categories.forEach((cat, ci) => {
@@ -920,7 +956,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
       displayRows.forEach(r => {
         const parity = (pos++ % 2 === 0) ? 'row-even' : 'row-odd';
         const cls = [parity, r.it.struck?'struck':'', r.it.received?'received':''].join(' ');
-        rows += `<tr class="${cls}" data-cat="${ci}" data-uid="${r.it._uid}">${rowInputsHtml(r.it, list, r.idx, ci, draggable)}</tr>`;
+        rows += `<tr class="${cls}" data-cat="${ci}" data-uid="${r.it._uid}">${rowInputsHtml(r.it, list, r.idx, ci, draggable, topSet)}</tr>`;
       });
       rows += `<tr class="add-item-row"><td colspan="${bodyColspan + 1}"><button type="button" class="add-row" data-action="add-item" data-cat="${ci}">+ item em ${esc(cat.name)}</button></td></tr>`;
     });
@@ -932,6 +968,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
 
   function renderFlatTable(list){
     const draggable = sortMode === 'manual' && !searchQuery;
+    const topSet = computeTopFreqSet(list);
     if (sortMode === 'tipo'){
       const filtered = list.items.map((it, idx) => ({ it, idx })).filter(r => matchesQuery(r.it, 'produto', searchQuery.trim().toLowerCase()));
       const groups = {};
@@ -946,7 +983,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
         groups[key].forEach(r => {
           const parity = (pos++ % 2 === 0) ? 'row-even' : 'row-odd';
           const cls = [parity, r.it.received?'received':'', r.it.struck?'struck':''].join(' ');
-          rows += `<tr class="${cls}" data-uid="${r.it._uid}">${rowInputsHtml(r.it, list, r.idx, null, false)}</tr>`;
+          rows += `<tr class="${cls}" data-uid="${r.it._uid}">${rowInputsHtml(r.it, list, r.idx, null, false, topSet)}</tr>`;
         });
       });
       return `<table>
@@ -960,7 +997,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     let rows = displayRows.map((r, pos) => {
       const parity = (pos % 2 === 0) ? 'row-even' : 'row-odd';
       const cls = [parity, r.it.received?'received':'', r.it.struck?'struck':''].join(' ');
-      return `<tr class="${cls}" data-uid="${r.it._uid}">${rowInputsHtml(r.it, list, r.idx, null, draggable)}</tr>`;
+      return `<tr class="${cls}" data-uid="${r.it._uid}">${rowInputsHtml(r.it, list, r.idx, null, draggable, topSet)}</tr>`;
     }).join('');
     return `<table>
       <thead><tr><th></th><th></th><th>Produto</th><th class="num">Qtd</th><th>Un</th><th></th></tr></thead>
@@ -1018,6 +1055,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
       <button type="button" class="ghost" data-action="reset-list">${resetLabel()}</button>
       ${list.type==='grouped' ? '<button type="button" class="ghost" data-action="add-cat">+ categoria</button>' : ''}
       ${list.type==='grouped' ? '<button type="button" class="ghost" data-action="open-fornecedor-modal">Por fornecedor</button>' : ''}
+      <button type="button" class="ghost" data-action="copy-last-week" title="Preencher com as quantidades da última encomenda guardada">Copiar da semana passada</button>
       <button type="button" class="ghost" data-action="save-history">Guardar no histórico</button>
       <button type="button" class="ghost" data-action="toggle-history">${historyOpen ? 'Fechar histórico' : 'Repetir encomenda'}</button>
     </div>
@@ -1028,7 +1066,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     ensureUids();
     if (!getActiveList()) activeListId = state.lists[0].id;
     root.innerHTML = `
-      <div class="wrap">
+      <div class="wrap${simpleMode ? ' simple-mode' : ''}">
         <div class="header-row">
           <h1>Pedidos da Cozinha</h1>
           <button type="button" class="theme-toggle" data-action="open-theme-modal" title="Escolher tema">🎨</button>
@@ -1086,6 +1124,7 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:var(--text-mute
     const inner = list.type === 'grouped' ? renderGroupedTable(list) : renderFlatTable(list);
     document.getElementById('dynamic-area').innerHTML = dynamicAreaHtml(inner);
     wireRowDrag();
+    wireRowSwipe();
     autoGrowAll();
   }
 
@@ -1229,6 +1268,11 @@ ${appScript}
       try { localStorage.setItem('pedidos_stale_alerts', String(staleAlertsEnabled)); } catch(e){}
       return;
     }
+    if (action === 'toggle-simple-mode'){
+      simpleMode = btn.checked;
+      try { localStorage.setItem('pedidos_simple_mode', String(simpleMode)); } catch(e){}
+      return;
+    }
     if (action === 'toggle-export-fornecedor'){
       exportShowFornecedor = btn.checked;
       try { localStorage.setItem('pedidos_export_show_fornecedor', String(exportShowFornecedor)); } catch(e){}
@@ -1306,6 +1350,7 @@ ${appScript}
     }
     if (action === 'toggle-history'){ historyOpen = !historyOpen; render(); return; }
     if (action === 'save-history'){ pushUndo(); saveHistory(list); scheduleSave(); render(); return; }
+    if (action === 'copy-last-week'){ copyLastWeek(); return; }
     if (action === 'load-history'){
       if (!confirm('Substituir os itens atuais por esta encomenda guardada? Podes editar depois de carregar.')) return;
       pushUndo(); loadHistory(list, btn.dataset.hid); scheduleSave(); render();
@@ -1322,34 +1367,11 @@ ${appScript}
       if (row) row.classList.toggle('received', btn.checked);
       return;
     }
-    if (action === 'qty-step'){
-      const cat = btn.dataset.cat !== undefined ? Number(btn.dataset.cat) : null;
-      const idx = Number(btn.dataset.idx);
-      const field = btn.dataset.field;
-      const dir = Number(btn.dataset.dir);
-      const ref = cat != null ? list.categories[cat].items : list.items;
-      const cur = ref[idx][field];
-      const num = parseFloat(String(cur||'0').replace(',', '.'));
-      const next = (isNaN(num) ? 0 : num) + dir;
-      if (!dirty) pushUndo();
-      ref[idx][field] = String(Math.max(0, next));
-      scheduleSave();
-      renderTableOnly();
-      return;
-    }
     if (action === 'toggle-struck'){
       const cat = btn.dataset.cat !== undefined ? Number(btn.dataset.cat) : null;
       const idx = Number(btn.dataset.idx);
       const ref = cat != null ? list.categories[cat].items : list.items;
-      const item = ref[idx];
-      if (!dirty) pushUndo();
-      item.struck = !item.struck;
-      if (item.struck){
-        if (list.type === 'grouped'){ item.d0 = '-'; item.d1 = '-'; }
-        else { item.qtd = '-'; }
-      }
-      scheduleSave();
-      renderTableOnly();
+      toggleStruckItem(list, ref[idx]);
       return;
     }
     if (action === 'duplicate-list'){
@@ -1424,6 +1446,99 @@ ${appScript}
     render();
   }
 
+  function copyLastWeek(){
+    const list = getActiveList();
+    if (!list.history || !list.history.length){
+      alert('Ainda não há nenhuma encomenda guardada no histórico desta lista.');
+      return;
+    }
+    if (!confirm('Preencher as quantidades atuais com as da última encomenda guardada? Podes continuar a editar depois.')) return;
+    pushUndo();
+    const field = nameField(list);
+    const h = list.history[0];
+    if (list.type === 'grouped'){
+      const hArr = h.data.flatMap(c => c.items);
+      list.categories.forEach(cat => cat.items.forEach(it => {
+        const match = hArr.find(x => (x[field]||'').trim().toLowerCase() === (it.item||'').trim().toLowerCase());
+        if (match){ it.d0 = match.d0 != null ? match.d0 : '-'; it.d1 = match.d1 != null ? match.d1 : '-'; }
+      }));
+    } else {
+      list.items.forEach(it => {
+        const match = h.data.find(x => (x[field]||'').trim().toLowerCase() === (it.produto||'').trim().toLowerCase());
+        if (match) it.qtd = match.qtd != null ? match.qtd : '-';
+      });
+    }
+    scheduleSave();
+    render();
+  }
+
+  // ---------- qty stepper: tap = 1 step, hold = accelerating repeat ----------
+  // Driven entirely by pointerdown/pointerup (not 'click'): applyQtyStep() re-renders
+  // the table on every tick, which replaces the button under the pointer, and browsers
+  // reliably drop the synthetic trailing 'click' once its original target is gone —
+  // so a click-based "tap" path would randomly miss taps right after a hold.
+  let stepHoldTimeout = null, stepRepeatInterval = null, stepRepeatTicks = 0, qtyPressInfo = null;
+
+  function applyQtyStep(cat, idx, field, dir){
+    const list = getActiveList();
+    const ref = cat != null ? list.categories[cat].items : list.items;
+    const item = ref[idx];
+    if (!item){ clearQtyStepTimers(); return; }
+    const cur = item[field];
+    const num = parseFloat(String(cur||'0').replace(',', '.'));
+    const next = (isNaN(num) ? 0 : num) + dir;
+    if (!dirty) pushUndo();
+    item[field] = String(Math.max(0, next));
+    scheduleSave();
+    renderTableOnly();
+  }
+
+  function clearQtyStepTimers(){
+    clearTimeout(stepHoldTimeout); stepHoldTimeout = null;
+    clearInterval(stepRepeatInterval); stepRepeatInterval = null;
+    stepRepeatTicks = 0;
+  }
+
+  root.addEventListener('pointerdown', e => {
+    const btn = e.target.closest('[data-action="qty-step"]');
+    if (!btn) return;
+    const cat = btn.dataset.cat !== undefined ? Number(btn.dataset.cat) : null;
+    const idx = Number(btn.dataset.idx);
+    const field = btn.dataset.field;
+    const dir = Number(btn.dataset.dir);
+    qtyPressInfo = { cat, idx, field, dir, longPress: false, startX: e.clientX, startY: e.clientY };
+    stepHoldTimeout = setTimeout(() => {
+      if (!qtyPressInfo) return;
+      qtyPressInfo.longPress = true;
+      stepRepeatTicks = 0;
+      applyQtyStep(cat, idx, field, dir);
+      stepRepeatInterval = setInterval(() => {
+        stepRepeatTicks++;
+        applyQtyStep(cat, idx, field, dir);
+        if (stepRepeatTicks === 10){
+          clearInterval(stepRepeatInterval);
+          stepRepeatInterval = setInterval(() => applyQtyStep(cat, idx, field, dir), 55);
+        }
+      }, 130);
+    }, 450);
+  });
+  document.addEventListener('pointermove', e => {
+    if (!qtyPressInfo || qtyPressInfo.longPress) return;
+    if (Math.abs(e.clientX - qtyPressInfo.startX) > 10 || Math.abs(e.clientY - qtyPressInfo.startY) > 10){
+      // finger dragged away (e.g. scrolling) instead of tapping — cancel, like a native tap would
+      clearQtyStepTimers();
+      qtyPressInfo = null;
+    }
+  });
+  document.addEventListener('pointerup', () => {
+    clearQtyStepTimers();
+    if (qtyPressInfo && !qtyPressInfo.longPress){
+      applyQtyStep(qtyPressInfo.cat, qtyPressInfo.idx, qtyPressInfo.field, qtyPressInfo.dir);
+    }
+    qtyPressInfo = null;
+  });
+  document.addEventListener('pointercancel', () => { clearQtyStepTimers(); qtyPressInfo = null; });
+
   document.addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey;
     if (!mod) return;
@@ -1433,9 +1548,74 @@ ${appScript}
   });
 
   // ---------- drag reorder (pointer events: works for mouse + touch) ----------
+  function toggleStruckItem(list, item){
+    if (!item) return;
+    if (!dirty) pushUndo();
+    item.struck = !item.struck;
+    if (item.struck){
+      if (list.type === 'grouped'){ item.d0 = '-'; item.d1 = '-'; }
+      else { item.qtd = '-'; }
+    }
+    scheduleSave();
+    renderTableOnly();
+  }
+
+  function findItemByUid(list, uid){
+    const all = list.type === 'grouped' ? list.categories.flatMap(c => c.items) : list.items;
+    return all.find(it => it._uid === uid);
+  }
+
   function wireDrag(){
     wireRowDrag();
     wireTabDrag();
+    wireRowSwipe();
+  }
+
+  // ---------- mobile swipe (either direction) to strike/unstrike an item ----------
+  function wireRowSwipe(){
+    const container = document.getElementById('rows-container');
+    if (!container) return;
+    const SWIPE_COMMIT = 12, SWIPE_TOGGLE = 70;
+    let row = null, pointerId = null, startX = 0, startY = 0, committed = false, rejected = false;
+
+    container.querySelectorAll('tr[data-uid]').forEach(tr => {
+      tr.addEventListener('pointerdown', e => {
+        if (!window.matchMedia('(max-width: 620px)').matches) return;
+        if (e.target.closest('.drag-handle')) return;
+        row = tr; pointerId = e.pointerId; startX = e.clientX; startY = e.clientY;
+        committed = false; rejected = false;
+      });
+      tr.addEventListener('pointermove', e => {
+        if (!row || e.pointerId !== pointerId || rejected) return;
+        const dx = e.clientX - startX, dy = e.clientY - startY;
+        if (!committed){
+          if (Math.abs(dx) < SWIPE_COMMIT && Math.abs(dy) < SWIPE_COMMIT) return;
+          if (Math.abs(dy) > Math.abs(dx)){ rejected = true; return; }
+          committed = true;
+          try { row.setPointerCapture(pointerId); } catch(err){}
+          try { window.getSelection().removeAllRanges(); } catch(err){}
+          row.classList.add('swiping');
+        }
+        e.preventDefault();
+        const clamped = Math.max(-110, Math.min(110, dx));
+        row.style.transform = `translateX(${clamped}px)`;
+      });
+      const finish = e => {
+        if (!row || e.pointerId !== pointerId) return;
+        const dx = e.clientX - startX;
+        const wasCommitted = committed;
+        row.classList.remove('swiping');
+        row.style.transform = '';
+        if (wasCommitted && Math.abs(dx) >= SWIPE_TOGGLE){
+          const uid = row.dataset.uid;
+          const list = getActiveList();
+          toggleStruckItem(list, findItemByUid(list, uid));
+        }
+        row = null; committed = false; rejected = false;
+      };
+      tr.addEventListener('pointerup', finish);
+      tr.addEventListener('pointercancel', finish);
+    });
   }
 
   function wireRowDrag(){
