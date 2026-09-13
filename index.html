@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pedidos da Cozinha</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -202,6 +207,7 @@ table.clean-table th{ text-align:left; font-size:11px; text-transform:uppercase;
 table.clean-table th:not(:first-child){ text-align:center; }
 table.clean-table td{ padding:10px 22px; border-bottom:1px solid #eee6d8; }
 td.clean-qty{ text-align:center; font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:17px; }
+.clean-unit{ text-align:center; font-size:12px; color:#8a8374; }
 tr.clean-even td{ background:#ffffff; }
 tr.clean-odd td{ background:#f6f2e9; }
 tr.clean-cat td{ background:var(--accent); color:#fff; font-weight:700; padding:9px 22px; font-size:13px; border-bottom:none; }
@@ -270,6 +276,8 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
   <a href="Lista.apk" download style="color:#fff;font-weight:700;background:rgba(255,255,255,0.18);padding:4px 10px;border-radius:6px;text-decoration:none;">Baixar app Android (offline)</a>
   <button onclick="document.getElementById(&quot;gh-download-banner&quot;).remove()" style="background:transparent;border:1px solid rgba(255,255,255,0.5);color:#fff;border-radius:4px;padding:2px 7px;cursor:pointer;">Fechar</button>
 </div>
+</head>
+<body>
 <div id="app-root"></div>
 
 <script id="state-data" type="application/json">
@@ -278,8 +286,8 @@ tr.clean-struck .clean-name{ text-decoration:line-through; color:#aaa; }
 "recheio":{"items":[{"produto":"Pimento vermelho","qtd":"4","un":"500g","tipo":"Legumes"},{"produto":"rabanetes","qtd":".","un":"250g","tipo":"Legumes"},{"produto":"alho francês","qtd":"-","un":"2kg","tipo":"Legumes"},{"produto":"Batata doce branca","qtd":".","un":"6kg","tipo":"Legumes"},{"produto":"Batata doce roxa","qtd":"-","un":"6kg","tipo":"Legumes"},{"produto":"beterraba","qtd":".","un":"kg","tipo":"Legumes"},{"produto":"cebola roxa","qtd":".","un":"5kg","tipo":"Legumes"},{"produto":"misto de alface","qtd":"6","un":"350g","tipo":"Legumes"},{"produto":"cenouras","qtd":"-","un":"5kg","tipo":"Legumes"},{"produto":"courgetes","qtd":".","un":"5kg","tipo":"Legumes"},{"produto":"couve","qtd":"-","un":"un","tipo":"Legumes"},{"produto":"Couve Roxa","qtd":"-","un":"Un","tipo":"Legumes"},{"produto":"gengibre","qtd":"-","un":"375g","tipo":"Legumes"},{"produto":"limas","qtd":"-","un":"500g","tipo":"Legumes"},{"produto":"Nabos(daikon)","qtd":"-","un":"4kg","tipo":"Legumes"},{"produto":"Malagueta verde","qtd":"-","un":"un","tipo":"Legumes"},{"produto":"manga","qtd":"2","un":"caixa ~4kg","tipo":"Frutas"},{"produto":"abacate HASS","qtd":"2","un":"caixa ~4kg","tipo":"Frutas"},{"produto":"laranjas","qtd":"-","un":"caixa ~2kg","tipo":"Frutas"},{"produto":"morangos","qtd":"1","un":"2kg","tipo":"Frutas"},{"produto":"Abacaxi","qtd":"4","un":"Un","tipo":"Frutas"},{"produto":"Ceboleto","qtd":"-","un":"200g","tipo":"Frutas"},{"produto":"tomate cherry","qtd":"6","un":"500g","tipo":"Frutas"},{"produto":"melancia","qtd":"-","un":"Un","tipo":"Frutas"},{"produto":"açúcar","qtd":".","un":"kg","tipo":"Mercearia"},{"produto":"açúcar amarelo","qtd":"-","un":"kg","tipo":"Mercearia"},{"produto":"farinha","qtd":".","un":"Saco grande","tipo":"Mercearia"},{"produto":"sal fino","qtd":".","un":"10kg","tipo":"Mercearia"},{"produto":"amêndoa picada","qtd":".","un":"kg","tipo":"Mercearia"},{"produto":"azeite","qtd":"-","un":"un","tipo":"Mercearia"},{"produto":"Aroma de baunilha","qtd":"-","un":"un","tipo":"Mercearia"},{"produto":"chocolate branco","qtd":".","un":"Un","tipo":"Mercearia"},{"produto":"Manteiga Amendoim","qtd":".","un":"Caixa grande","tipo":"Mercearia"},{"produto":"Amendoim","qtd":".","un":"kg","tipo":"Mercearia"},{"produto":"leite condensado","qtd":"-","un":"Un","tipo":"Mercearia"},{"produto":"manteiga","qtd":"-","un":"Un","tipo":"Mercearia"},{"produto":"Nutella","qtd":".","un":"Un","tipo":"Mercearia"},{"produto":"ovos codorniz","qtd":"10","un":"Dúzia","tipo":"Mercearia"},{"produto":"amêndoa laminada","qtd":"10","un":"Un","tipo":"Mercearia"},{"produto":"Bolacha aveia Triunfo 190g","qtd":".","un":"caixa de 24un","tipo":"Mercearia"},{"produto":"bolachas recheadas cacau","qtd":"-","un":"caixa de 20un","tipo":"Mercearia"},{"produto":"salmão (6/7kg)","qtd":"-","un":"un","tipo":"Peixe"},{"produto":"Toalhitas WC \"marca Recheio\"","qtd":".","un":"Un","tipo":"limpeza e diversos"},{"produto":"Bag in Box Rosé (5L)","qtd":"-","un":"Un","tipo":"Bebidas"},{"produto":"Espumante Corte Real Branco","qtd":".","un":"Caixa 6un","tipo":"Bebidas"},{"produto":"Espumante Corte Real Rosé","qtd":"-","un":"Caixa 6un","tipo":"Bebidas"},{"produto":"Seven Up 1,5X6 PACK","qtd":"2","un":"Pack de 6","tipo":"Bebidas"},{"produto":"Vieiras","qtd":"-","un":"kg","tipo":"Bebidas"}],"history":[]}}
 </script>
 
-<script src="html2canvas.min.js"></script>
-<script src="jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script id="app-script">
 (function(){
   const PALETTE = ['teal','green','terracotta','indigo','mustard','plum'];
@@ -421,6 +429,7 @@ table.clean-table th{ text-align:left; font-size:11px; text-transform:uppercase;
 table.clean-table th:not(:first-child){ text-align:center; }
 table.clean-table td{ padding:10px 22px; border-bottom:1px solid #eee6d8; }
 td.clean-qty{ text-align:center; font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:17px; }
+.clean-unit{ text-align:center; font-size:12px; color:#8a8374; }
 tr.clean-even td{ background:#ffffff; }
 tr.clean-odd td{ background:#f6f2e9; }
 tr.clean-cat td{ background:var(--accent); color:#fff; font-weight:700; padding:9px 22px; font-size:13px; border-bottom:none; }
@@ -1585,6 +1594,7 @@ ${appScript}
       rows += `<tr class="${parity}">
         <td class="clean-name">${esc(it.produto)}</td>
         <td class="clean-qty">${esc(it.qtd) || '-'}</td>
+        <td class="clean-unit">${esc(it.un) || ''}</td>
       </tr>`;
     });
     return `<div class="clean-export" style="--accent:var(--acc-${list.accent})">
@@ -1593,7 +1603,7 @@ ${appScript}
         <div class="clean-date">${dateStr}</div>
       </div>
       <table class="clean-table">
-        <thead><tr><th>Produto</th><th>Qtd</th></tr></thead>
+        <thead><tr><th>Produto</th><th>Qtd</th><th>Un</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
@@ -1701,6 +1711,8 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
+</body>
+</html>
 <script>
 function scrollProjStrip(btn, dir) {
   const strip = btn.parentElement.querySelector('.proj-strip');
